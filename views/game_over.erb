@@ -1,5 +1,13 @@
-<h3>Thanks for playing!</h3>
+<% if session[:player_pot] <= 0 %>
+<h3> You ran out of money.</h3>
+<p> Maybe Blackjack just isn't your game?</p>
+<a href='new_player'>Start Over?</a>
 
-Next stop Vegas!
+<% else %>
+<h2>Thanks for playing!</h2>
+
+<p>Next stop Vegas!</p>
 
 <a href='new_player'>Start Over?</a>
+
+<% end %>

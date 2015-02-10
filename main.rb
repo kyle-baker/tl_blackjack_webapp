@@ -12,6 +12,7 @@ set :sessions, true
 
 BLACKJACK_AMOUNT = 21
 DEALER_MIN_HIT = 17
+INITIAL_POT_AMOUNT = 500
 
 #################################################################################### 
 helpers do
@@ -58,19 +59,21 @@ helpers do
   def winner!(message)
     @play_again = true
     @show_hit_or_stay_buttons = false
-    @success = "<strong>#{session[:player_name]} wins!</strong> #{message}"
+    session[:player_pot] = session[:player_pot] + session[:player_bet]
+    @winner = "<strong>#{session[:player_name]} wins!</strong> #{message} #{session[:player_name]} now has $#{session[:player_pot]}"
   end
 
   def loser!(message)
     @play_again = true
     @show_hit_or_stay_buttons = false
-    @error = "<strong>#{session[:player_name]} loses.</strong> #{message}"
+    session[:player_pot] = session[:player_pot] - session[:player_bet]
+    @loser = "<strong>#{session[:player_name]} loses.</strong> #{message} #{session[:player_name]} now has $#{session[:player_pot]}"
   end
 
   def tie!(message)
     @play_again = true
     @show_hit_or_stay_buttons = false
-    @success = "<strong>Push! It's a tie.</strong> #{message}"
+    @winner = "<strong>Push! It's a tie.</strong> #{message}"
   end
 end
 
@@ -87,6 +90,7 @@ get '/' do
 end
 
 get '/new_player' do
+  session[:player_pot] = INITIAL_POT_AMOUNT
   erb :new_player
 end
 
@@ -97,7 +101,29 @@ post '/new_player' do
   end
 
   session[:player_name] = params[:player_name]
-  redirect '/game'
+  redirect '/bet'
+end
+
+get '/bet' do
+  session[:player_bet] = nil
+  if session[:player_pot] <= 0
+    redirect '/game_over'
+  end
+  erb :bet
+end
+
+post '/bet' do
+
+  if params[:bet_amount].nil? || params[:bet_amount].to_i == 0
+    @error = "Please make a bet. The minimum bet is $1"
+    halt erb(:bet)
+  elsif params[:bet_amount].to_i > session[:player_pot]
+    @error = "You don't have enough to make that bet! (You have $#{session[:player_pot]} available)"
+    halt erb(:bet)
+  else # No errors, bet is valid
+    session[:player_bet] = params[:bet_amount].to_i
+    redirect '/game'
+  end
 end
 
 get '/game' do
@@ -116,15 +142,6 @@ get '/game' do
   session[:player_cards] << session[:deck].pop
   end
 
-  # player_total = calculate_total(session[:player_cards])
-  # dealer_total = calculate_total(session[:dealer_cards])
-
-  # if player_total == BLACKJACK_AMOUNT && dealer_total < BLACKJACK_AMOUNT
-  #   winner!("#{session[:player_name]} hit Blackjack!")
-  # elsif player_total == BLACKJACK_AMOUNT && dealer_total == BLACKJACK_AMOUNT
-  #   tie!("Both Dealer and #{session[:player_name]} hit Blackjack.")
-  # end
-
   erb :game
 end
 
@@ -135,9 +152,9 @@ post "/game/player/hit" do
   if player_total == BLACKJACK_AMOUNT
     winner!("#{session[:player_name]} hit 21!")
   elsif player_total > BLACKJACK_AMOUNT
-    loser!("#{session[:player_name]} busted at #{player_total}")
+    loser!("It looks like #{session[:player_name]} busted at #{player_total}.")
   end
-  erb :game
+  erb :game, layout: false
 end
 
 post "/game/player/stay" do
@@ -156,7 +173,6 @@ get '/game/dealer' do
   if dealer_total == BLACKJACK_AMOUNT
     loser!("Dealer hit Blackjack.")
   elsif dealer_total > BLACKJACK_AMOUNT
-    @success = "Congratulations, dealer busted. #{session[:player_name]} wins! "
     winner!("Dealer busted at #{dealer_total}.")
   elsif dealer_total >= DEALER_MIN_HIT # 17, 18, 19, 20
     #dealer stays
@@ -166,7 +182,7 @@ get '/game/dealer' do
     @show_dealer_hit_button = true
   end
 
-  erb :game
+  erb :game, layout: false
 end
 
 post "/game/dealer/hit" do

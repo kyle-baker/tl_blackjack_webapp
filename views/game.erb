@@ -1,11 +1,18 @@
+<div id="game">
+  <%if @loser %>
+    <div class="alert alert-error"><%=@loser%></div>
+  <% end %>
+  <%if @winner %>
+    <div class="alert alert-success"><%=@winner%></div>
+  <% end %>
 <h1>Blackjack</h1>
 
 <h4> Welcome <%= session[:player_name]%>! </h4>
 
 <% if @play_again %>
   <p>
-    <strong>Play again?</strong>
-    <a href="/game" class="btn btn-primary"> Yes</a>
+    <strong>Play Another Round?</strong>
+    <a href="/bet" class="btn btn-primary"> Yes</a>
     <a href="/game_over" class="btn"> No</a>
   </p>
 <% end %>
@@ -32,11 +39,15 @@
 </div>
 <br/>
 
-<div class="well">
+<div class="well" id="player_cards">
   <h4>Player cards:</h4>
   <% session[:player_cards].each do |card| %>
     <%= card_image(card) %> 
   <% end %>
+
+  <h5>
+    <%= session[:player_name] %> has $<%= session[:player_pot] %> total. Bet amount this round: $<%= session[:player_bet] %> 
+  </h5>
 </div>
 
 <br/>
@@ -54,4 +65,4 @@
   </form>
   <% end %>
 
- 
+ </div>
