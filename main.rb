@@ -2,11 +2,6 @@ require 'rubygems'
 require 'sinatra'
 require 'pry'
 
-# Set port for compatability with Nitrous.IO 
-configure :development do   
-  set :bind, '0.0.0.0'   
-  set :port, 3000 # Not really needed, but works well with the "Preview" menu option
-end
 
 set :sessions, true
 
@@ -14,7 +9,7 @@ BLACKJACK_AMOUNT = 21
 DEALER_MIN_HIT = 17
 INITIAL_POT_AMOUNT = 500
 
-#################################################################################### 
+
 helpers do
   def calculate_total(cards) 
     #[['D', '3'], ['S', '10'], ...]
@@ -106,9 +101,9 @@ end
 
 get '/bet' do
   session[:player_bet] = nil
-  if session[:player_pot] <= 0
-    redirect '/game_over'
-  end
+  #if session[:player_pot] <= 0
+    #redirect '/game_over'
+  #end
   erb :bet
 end
 
