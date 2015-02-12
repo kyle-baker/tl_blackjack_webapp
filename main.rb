@@ -101,9 +101,9 @@ end
 
 get '/bet' do
   session[:player_bet] = nil
-  #if session[:player_pot] <= 0
-    #redirect '/game_over'
-  #end
+  if session[:player_pot] <= 0
+    redirect '/game_over'
+  end
   erb :bet
 end
 
