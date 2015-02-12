@@ -3,7 +3,9 @@ require 'sinatra'
 require 'pry'
 
 
-set :sessions, true
+use Rack::Session::Cookie, :key => 'rack.session',
+                           :path => '/',
+                           :secret => 'a_random_string'
 
 BLACKJACK_AMOUNT = 21
 DEALER_MIN_HIT = 17
